@@ -20,7 +20,7 @@ This module is a study in the simplification of common API/module/REST needs for
 
 **Commands:**
 
-`npm run dev` - Builds continuously
+`npm run dev` - Builds continuously (TODO:)
 
 `npm start` - runs the local dev server
 

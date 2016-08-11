@@ -1,0 +1,29 @@
+{
+  "name": "apithen.js",
+  "version": "0.0.1",
+  "description": "RESTful Api Promise Chain Module",
+  "main": "ApiThen.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TrevorJTClarke/ApiThen.js.git"
+  },
+  "keywords": [
+    "API",
+    "REST",
+    "ES6"
+  ],
+  "author": "@trevorjtclarke",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TrevorJTClarke/ApiThen.js/issues"
+  },
+  "homepage": "https://github.com/TrevorJTClarke/ApiThen.js#readme",
+  "dependencies": {
+    "body-parser": "^1.15.2",
+    "express": "^4.14.0"
+  }
+}
