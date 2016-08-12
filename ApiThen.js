@@ -1,3 +1,17 @@
+// key = method name
+// value = boolean --> has body?
+//
+// NOTE: There are a ton more methods than this, but these are the most generic.
+const xhrMethods = {
+  PUT: true,
+  POST: true,
+  PATCH: true,
+  GET: false,
+  DELETE: false,
+  HEAD: false,
+  OPTIONS: false
+}
+
 /**
  * ApiThen.js
  *
@@ -18,9 +32,27 @@ class ApiThen {
     this.options.route = ''
     this.options.query = ''
     this.required = {}
+    this.bodyContent = {} // default to object?
+
+    // Initializing xhr methods
+    this.xhrMethodsInit()
 
     // Initializing methods
     this.methodsInit()
+  }
+
+
+  /**
+   * AUTO GENERATE XHR METHODS
+   * NOTE: HIGHLY experimental, checking if this is a good idea or not
+   */
+  xhrMethodsInit () {
+    var _this = this
+
+    // generate
+    for (var x in xhrMethods) {
+      _this.createMethod(x.toLowerCase(), [], `this.setHeader('method', '${x}'); this.setRequire('hasBody', ${xhrMethods[x]}); return this;`)
+    }
   }
 
   /**
@@ -65,8 +97,9 @@ class ApiThen {
   setHeader (key, val) {
     this.headers[key] = val
 
-    // if its a method, reset the route string
+    // if its a method, reset the route & query strings
     this.options.route = ''
+    this.options.query = ''
   }
   setOption (key, val) {
     this.options[key] = val
@@ -75,49 +108,50 @@ class ApiThen {
     this.required[key] = val
   }
   getRoute () {
+    /*eslint no-console: ["error", { allow: ["log"] }] */
+    console.log('this.__proto__', this.__proto__)
+
     return this.options.baseUrl + this.options.route + this.options.query
   }
 
   /**
-   * METHODS
-   * Responsible for configuring the method used in request
-   *
-   * TODO: Create DRY version
+   * BODY
+   * Places data into the request body
+   * TODO: Check all types of data
    */
-  get () {
-    this.setHeader('method', 'GET')
-    this.setRequire('hasBody', false)
-    return this
+  body (data) {
+    if (!data) throw new Error('Request Body requires data! Please pass data into the .body() method!')
+    this.bodyContent = data
+
+    return this;
   }
-  put () {
-    this.setHeader('method', 'PUT')
-    this.setRequire('hasBody', true)
-    return this
-  }
-  post () {
-    this.setHeader('method', 'POST')
-    this.setRequire('hasBody', true)
-    return this
-  }
-  patch () {
-    this.setHeader('method', 'PATCH')
-    this.setRequire('hasBody', true)
-    return this
-  }
-  delete () {
-    this.setHeader('method', 'DELETE')
-    this.setRequire('hasBody', false)
-    return this
-  }
-  options () {
-    this.setHeader('method', 'OPTIONS')
-    this.setRequire('hasBody', false)
-    return this
-  }
-  head () {
-    this.setHeader('method', 'HEAD')
-    this.setRequire('hasBody', false)
-    return this
+
+  /**
+   * ENDPOINT QUERY PARAMS
+   * All query params specified here are formatted and appended to final route
+   *
+   * EXAMPLES:
+   * - .query({ limit: 20, offset: 40 })
+   * - .query({ sort: 'desc', limit: 20, offset: 40, featured: true })
+   *
+   * OUTPUTS
+   * - https://api.somewhere.com/users?limit=20&offset=40
+   * - https://api.somewhere.com/users?sort=desc&limit=20&&offset=40&featured=true
+   */
+  query (params) {
+    let finalParams = ''
+
+    // setup each param into main params string, formatted of course
+    for (var p in params) {
+      finalParams += `${p}=${params[p]}&`
+    }
+
+    // remove last & -- Is there a better way to do this?
+    finalParams = finalParams.slice(0, -1)
+
+    this.options.query += (finalParams && finalParams.length > 0) ? `?${finalParams}` : ''
+
+    return this;
   }
 
   /**
@@ -149,7 +183,11 @@ class ApiThen {
       }
 
       // TODO: Setup headers from config
-      // req.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded')
+      if (Object.keys(_this.headers).length > 0) {
+        for (var hh in _this.headers) {
+          req.setRequestHeader(hh, _this.headers[hh])
+        }
+      }
 
       // Handle network errors
       req.onerror = function () {
@@ -157,39 +195,15 @@ class ApiThen {
       }
 
       // Make the request!!
-      req.send()
+      if (_this.bodyContent) {
+        req.send(JSON.stringify(_this.bodyContent))
+      } else {
+        req.send()
+      }
     })
 
     // TODO: connect up res, rej
     return deferred.then(res, rej)
-  }
-
-  /**
-   * ENDPOINT QUERY PARAMS
-   * All query params specified here are formatted and appended to final route
-   *
-   * EXAMPLES:
-   * - .query({ limit: 20, offset: 40 })
-   * - .query({ sort: 'desc', limit: 20, offset: 40, featured: true })
-   *
-   * OUTPUTS
-   * - https://api.somewhere.com/users?limit=20&offset=40
-   * - https://api.somewhere.com/users?sort=desc&limit=20&&offset=40&featured=true
-   */
-  query (params) {
-    let finalParams = ''
-
-    // setup each param into main params string, formatted of course
-    for (var p in params) {
-      finalParams += `${p}=${params[p]}&`
-    }
-
-    // remove last & -- Is there a better way to do this?
-    finalParams = finalParams.slice(0, -1)
-
-    this.options.query += (finalParams && finalParams.length > 0) ? `?${finalParams}` : ''
-
-    return this;
   }
 
   /**

@@ -4,6 +4,12 @@
 var Api = new ApiThen({
     options: {
       baseUrl: 'https://randomuser.me/api'
+    },
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/vnd.something+json',
+      'X-Client-Id': 'u8f93h0q933f2-9j3f2jpjfkwljf0923fjfew-32rfff',
+      'Authorization': 'Bearer D33e0c7c57a48466eb8071d272353ba27e'
     }
   },
   [{
@@ -27,8 +33,49 @@ console.log('createTest4', createTest4)
 console.log('createTest5', createTest5)
 console.log('createTest6', createTest6)
 
-// Api.get().users(1234).then((res) => {
-//   console.log('res', res)
-// }, (err) => {
-//   console.log('err', err)
-// })
+Api.get()
+  .users(1234).products()
+  .query({ limit: 20, offset: 40 })
+  .then((res) => {
+  console.log('res', res)
+}, (err) => {
+  console.log('err', err)
+})
+
+Api.post()
+  .products()
+  .body({
+    id: 348294723,
+    name: 'some product name',
+    description: 'lorem ipsum stuffsome',
+    images: [{
+      url: 'https://example.com/images/1234567890/thumbnail.jpg'
+    }],
+    price: 17.75,
+    variants: [{
+      colors: [{
+        id: 123,
+        name: 'blue',
+        value: '#5893ff'
+      }]
+    }]
+  })
+  .then((res) => {
+  console.log('res', res)
+}, (err) => {
+  console.log('err', err)
+})
+
+// // Weird IDEA:
+// this way I could queue up two calls,
+// then do something once they both return
+//
+// EXAMPLE:
+// Api.queue()
+//   .get().users().query({ limit: 20, offset: 0 })
+//   .get().groups(100000)
+//   .then((res) => {
+//      console.log('res', res)
+//   }, (err) => {
+//      console.log('err', err)
+//   })
